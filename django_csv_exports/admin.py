@@ -4,7 +4,6 @@ import django
 from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponse, HttpResponseForbidden
-from builtins import str as text
 
 
 def export_as_csv(admin_model, request, queryset):
@@ -29,16 +28,13 @@ def export_as_csv(admin_model, request, queryset):
             field_names = [field.name for field in opts.fields]
             field_names.sort()
 
-        if django.VERSION[0] == 1 and django.VERSION[1] <= 5:
-            response = HttpResponse(mimetype='text/csv')
-        else:
-            response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=%s.csv' % text(opts).replace('.', '_')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=%s.csv' % str(opts).replace('.', '_')
 
         writer = csv.writer(response)
         writer.writerow(list(field_names))
         for obj in queryset:
-            writer.writerow([text(getattr(obj, field)).encode("utf-8", "replace") for field in field_names])
+            writer.writerow([str(getattr(obj, field)) for field in field_names])
         return response
     return HttpResponseForbidden()
 export_as_csv.short_description = "Export selected objects as csv file"
